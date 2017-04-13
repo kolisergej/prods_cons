@@ -40,14 +40,14 @@ int main(int argc, char** argv) {
     for (size_t i = 0; i < threadCount; ++i) {
         producers.emplace_back(thread(&App::produce, &app, std::bind(&createArray, seed), recordsNumber));
     }
-    for (size_t i = 0; i < threadCount; ++i) {
+    for (size_t i = 0; i < threadCount * 10; ++i) {
         consumers.emplace_back(thread(&App::consume, &app));
     }
-    app.stop();
+
     for (auto& producerThread: producers) {
         producerThread.join();
     }
-
+    app.stop();
     for (auto& consumerThread: consumers) {
         consumerThread.join();
     }

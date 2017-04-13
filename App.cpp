@@ -1,6 +1,4 @@
 #include "App.h"
-#include <chrono>
-using namespace std::chrono_literals;
 
 App::App() :
     m_producerFinished(false)
@@ -10,11 +8,11 @@ App::App() :
 App::~App() {
     for (auto& data: m_threadId_Results) {
         std::cout << "Thread: "
-                  << std::this_thread::get_id()
+                  << data.first
                   << ", processed: "
                   << data.second.first
                   << " records."
-                  << std::endl;
+                  << std::endl << std::flush;
     }
 }
 
@@ -33,9 +31,8 @@ ResultType App::consume() {
     while (true) {
         unique_lock<mutex> lock(m_mutex);
 
-        m_cv.wait(lock, [this]() {
-            // true condition for exit from wait
-            return !m_queue.empty() || m_producerFinished;
+        m_cv.wait(lock, [this] {
+           return !m_queue.empty() || m_producerFinished;
         });
 
         if (!m_queue.empty())
@@ -64,4 +61,5 @@ ResultType App::consume() {
 void App::stop()
 {
     m_producerFinished = true;
+    m_cv.notify_all();
 }
